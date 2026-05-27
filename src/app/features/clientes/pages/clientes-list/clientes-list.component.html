@@ -1,6 +1,6 @@
 <div class="page">
   <app-page-header title="Clientes" subtitle="Directorio de clientes del sistema">
-    <button class="btn-primary" (click)="openDialog()">
+    <button class="btn-primary" (click)="openNew()">
       <i class="pi pi-plus"></i>
       Nuevo cliente
     </button>
@@ -33,11 +33,12 @@
           <th>Email</th>
           <th>Teléfono</th>
           <th>Estado</th>
+          <th class="col-actions"></th>
         </tr>
       </ng-template>
 
       <ng-template #body let-c>
-        <tr>
+        <tr [class.row--inactive]="!c.activo">
           <td>
             <div class="cliente-name">
               <div class="cliente-avatar">{{ c.nombre.charAt(0).toUpperCase() }}</div>
@@ -57,17 +58,29 @@
               <span class="badge badge--cancelada">Inactivo</span>
             }
           </td>
+          <td>
+            <div class="row-actions">
+              <button class="action-btn action-btn--edit" (click)="openEdit(c)" title="Editar">
+                <i class="pi pi-pencil"></i>
+              </button>
+              @if (c.activo) {
+                <button class="action-btn action-btn--danger" (click)="deactivate(c)" title="Desactivar">
+                  <i class="pi pi-ban"></i>
+                </button>
+              }
+            </div>
+          </td>
         </tr>
       </ng-template>
 
       <ng-template #emptymessage>
-        <tr><td colspan="5">
+        <tr><td colspan="6">
           <app-empty-state
             icon="pi pi-users"
             title="Sin clientes"
             description="Agrega tu primer cliente para comenzar a crear cotizaciones."
           >
-            <button class="btn-primary" (click)="openDialog()">
+            <button class="btn-primary" (click)="openNew()">
               <i class="pi pi-plus"></i>
               Agregar cliente
             </button>
@@ -78,9 +91,9 @@
   </div>
 </div>
 
-<!-- ── Dialog crear cliente ──────────────────────────────────── -->
+<!-- ── Dialog cliente ─────────────────────────────────────────── -->
 <p-dialog
-  header="Nuevo Cliente"
+  [header]="isEditing ? 'Editar Cliente' : 'Nuevo Cliente'"
   [(visible)]="showDialog"
   [modal]="true"
   styleClass="dialog-md"
@@ -118,7 +131,7 @@
       <button class="btn-ghost" (click)="showDialog.set(false)">Cancelar</button>
       <button class="btn-primary" (click)="save()" [disabled]="saving()">
         @if (saving()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
-        Guardar
+        {{ isEditing ? 'Actualizar' : 'Guardar' }}
       </button>
     </div>
   </ng-template>

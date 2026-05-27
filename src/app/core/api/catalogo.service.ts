@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ActividadDto,
+  ActualizarActividadCommand,
+  ActualizarItemCatalogoCommand,
   CrearActividadCommand,
   CrearItemCatalogoCommand,
   ItemCatalogoDto
@@ -22,6 +24,14 @@ export class CatalogoService {
     return this.http.post<ActividadDto>(`${this.base}/actividades`, command);
   }
 
+  updateActividad(id: string, body: ActualizarActividadCommand): Observable<ActividadDto> {
+    return this.http.put<ActividadDto>(`${this.base}/actividades/${id}`, body);
+  }
+
+  deactivateActividad(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/actividades/${id}`);
+  }
+
   getItems(actividadId?: string): Observable<ItemCatalogoDto[]> {
     let params = new HttpParams();
     if (actividadId) params = params.set('actividadId', actividadId);
@@ -30,5 +40,13 @@ export class CatalogoService {
 
   createItem(command: CrearItemCatalogoCommand): Observable<ItemCatalogoDto> {
     return this.http.post<ItemCatalogoDto>(`${this.base}/items`, command);
+  }
+
+  updateItem(id: string, body: ActualizarItemCatalogoCommand): Observable<ItemCatalogoDto> {
+    return this.http.put<ItemCatalogoDto>(`${this.base}/items/${id}`, body);
+  }
+
+  deactivateItem(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/items/${id}`);
   }
 }

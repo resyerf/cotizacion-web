@@ -36,6 +36,8 @@ export class ClientesListComponent implements OnInit {
   saving = signal(false);
   searchText = '';
 
+  editingId: string | null = null;
+
   readonly form = this.fb.group({
     nombre:    ['', [Validators.required, Validators.minLength(2)]],
     ruc:       [''],
@@ -54,8 +56,21 @@ export class ClientesListComponent implements OnInit {
     });
   }
 
-  openDialog(): void {
+  openNew(): void {
+    this.editingId = null;
     this.form.reset();
+    this.showDialog.set(true);
+  }
+
+  openEdit(c: ClienteDto): void {
+    this.editingId = c.id;
+    this.form.setValue({
+      nombre:    c.nombre,
+      ruc:       c.ruc ?? '',
+      email:     c.email ?? '',
+      telefono:  c.telefono ?? '',
+      direccion: c.direccion ?? '',
+    });
     this.showDialog.set(true);
   }
 
@@ -63,20 +78,38 @@ export class ClientesListComponent implements OnInit {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving.set(true);
     const v = this.form.getRawValue();
-    this.clientesService.create({
+
+    const body = {
       nombre:    v.nombre!,
       ruc:       v.ruc || undefined,
       email:     v.email || undefined,
       telefono:  v.telefono || undefined,
       direccion: v.direccion || undefined,
-    }).subscribe({
+    };
+
+    const obs = this.editingId
+      ? this.clientesService.update(this.editingId, body)
+      : this.clientesService.create(body);
+
+    obs.subscribe({
       next: () => {
         this.showDialog.set(false);
         this.saving.set(false);
         this.loadClientes();
-        this.toast.add({ severity: 'success', summary: 'Cliente creado', life: 3000 });
+        this.toast.add({ severity: 'success', summary: this.editingId ? 'Cliente actualizado' : 'Cliente creado', life: 3000 });
+        this.editingId = null;
       },
       error: () => this.saving.set(false)
+    });
+  }
+
+  deactivate(c: ClienteDto): void {
+    if (!confirm(`¿Desactivar al cliente "${c.nombre}"?`)) return;
+    this.clientesService.deactivate(c.id).subscribe({
+      next: () => {
+        this.loadClientes();
+        this.toast.add({ severity: 'warn', summary: 'Cliente desactivado', life: 3000 });
+      }
     });
   }
 
@@ -94,4 +127,6 @@ export class ClientesListComponent implements OnInit {
       c.email?.toLowerCase().includes(q)
     );
   }
+
+  get isEditing(): boolean { return !!this.editingId; }
 }

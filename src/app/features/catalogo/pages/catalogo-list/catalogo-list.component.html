@@ -14,12 +14,7 @@
           <div class="tab-toolbar__filters">
             <p-iconfield class="tab-toolbar__search">
               <p-inputicon styleClass="pi pi-search" />
-              <input
-                pInputText
-                type="text"
-                placeholder="Buscar items..."
-                [(ngModel)]="searchItems"
-              />
+              <input pInputText type="text" placeholder="Buscar items..." [(ngModel)]="searchItems" />
             </p-iconfield>
             <p-select
               class="tab-toolbar__select"
@@ -31,7 +26,7 @@
               placeholder="Filtrar por actividad"
             />
           </div>
-          <button class="btn-primary" (click)="showItemDialog.set(true); formItem.reset({ precioBase: 0 })">
+          <button class="btn-primary" (click)="openNewItem()">
             <i class="pi pi-plus"></i>
             Nuevo item
           </button>
@@ -52,18 +47,19 @@
                 <th>Actividad</th>
                 <th>Unidad</th>
                 <th class="text-end">Precio base</th>
+                <th>Moneda</th>
                 <th>Estado</th>
+                <th class="col-actions"></th>
               </tr>
             </ng-template>
             <ng-template #body let-i>
-              <tr>
+              <tr [class.row--inactive]="!i.activo">
                 <td><code class="item-code">{{ i.codigo }}</code></td>
                 <td>{{ i.descripcion }}</td>
                 <td><span class="actividad-tag">{{ i.actividadNombre }}</span></td>
                 <td>{{ i.unidad }}</td>
-                <td class="text-end">
-                  <strong>{{ i.precioBase | number:'1.2-2' }}</strong>
-                </td>
+                <td class="text-end"><strong>{{ i.precioBase | number:'1.2-2' }}</strong></td>
+                <td><span class="moneda-chip">{{ monedaSym(i.moneda) }} {{ i.moneda === 1 ? 'USD' : i.moneda === 2 ? 'PEN' : 'EUR' }}</span></td>
                 <td>
                   @if (i.activo) {
                     <span class="badge badge--aprobada">Activo</span>
@@ -71,18 +67,29 @@
                     <span class="badge badge--cancelada">Inactivo</span>
                   }
                 </td>
+                <td>
+                  <div class="row-actions">
+                    <button class="action-btn action-btn--edit" (click)="openEditItem(i)" title="Editar">
+                      <i class="pi pi-pencil"></i>
+                    </button>
+                    @if (i.activo) {
+                      <button class="action-btn action-btn--danger" (click)="deactivateItem(i)" title="Desactivar">
+                        <i class="pi pi-ban"></i>
+                      </button>
+                    }
+                  </div>
+                </td>
               </tr>
             </ng-template>
             <ng-template #emptymessage>
-              <tr><td colspan="6">
+              <tr><td colspan="8">
                 <app-empty-state
                   icon="pi pi-th-large"
                   title="Sin items"
                   description="Crea el primer item del catálogo para usarlo en cotizaciones."
                 >
-                  <button class="btn-primary" (click)="showItemDialog.set(true)">
-                    <i class="pi pi-plus"></i>
-                    Crear item
+                  <button class="btn-primary" (click)="openNewItem()">
+                    <i class="pi pi-plus"></i> Crear item
                   </button>
                 </app-empty-state>
               </td></tr>
@@ -95,30 +102,25 @@
       <p-tabpanel value="actividades">
         <div class="tab-toolbar">
           <div></div>
-          <button class="btn-primary" (click)="showActDialog.set(true); formAct.reset({ orden: actividades().length + 1 })">
+          <button class="btn-primary" (click)="openNewAct()">
             <i class="pi pi-plus"></i>
             Nueva actividad
           </button>
         </div>
 
         <div class="card table-card">
-          <p-table
-            [value]="actividades()"
-            [loading]="loadingAct()"
-            dataKey="id"
-          >
+          <p-table [value]="actividades()" [loading]="loadingAct()" dataKey="id">
             <ng-template #header>
               <tr>
-                <th>Orden</th>
-                <th>Código</th>
+                <th class="col-orden">Orden</th>
                 <th>Nombre</th>
                 <th>Estado</th>
+                <th class="col-actions"></th>
               </tr>
             </ng-template>
             <ng-template #body let-a>
-              <tr>
+              <tr [class.row--inactive]="!a.activo">
                 <td><span class="orden-badge">{{ a.orden }}</span></td>
-                <td><code class="item-code">{{ a.codigo }}</code></td>
                 <td>{{ a.nombre }}</td>
                 <td>
                   @if (a.activo) {
@@ -126,6 +128,18 @@
                   } @else {
                     <span class="badge badge--cancelada">Inactivo</span>
                   }
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <button class="action-btn action-btn--edit" (click)="openEditAct(a)" title="Editar">
+                      <i class="pi pi-pencil"></i>
+                    </button>
+                    @if (a.activo) {
+                      <button class="action-btn action-btn--danger" (click)="deactivateActividad(a)" title="Desactivar">
+                        <i class="pi pi-ban"></i>
+                      </button>
+                    }
+                  </div>
                 </td>
               </tr>
             </ng-template>
@@ -136,9 +150,8 @@
                   title="Sin actividades"
                   description="Las actividades agrupan los items del catálogo."
                 >
-                  <button class="btn-primary" (click)="showActDialog.set(true)">
-                    <i class="pi pi-plus"></i>
-                    Crear actividad
+                  <button class="btn-primary" (click)="openNewAct()">
+                    <i class="pi pi-plus"></i> Crear actividad
                   </button>
                 </app-empty-state>
               </td></tr>
@@ -150,46 +163,41 @@
   </p-tabs>
 </div>
 
-<!-- ── Dialog nueva actividad ───────────────────────────────── -->
+<!-- ── Dialog actividad ──────────────────────────────────────── -->
 <p-dialog
-  header="Nueva Actividad"
+  [header]="isEditingAct ? 'Editar Actividad' : 'Nueva Actividad'"
   [(visible)]="showActDialog"
   [modal]="true"
   styleClass="dialog-sm"
   (visibleChange)="showActDialog.set($event)"
 >
   <form [formGroup]="formAct" class="dialog-form">
-    <div class="dialog-form__row">
-      <div class="form-field">
-        <label>Código <span class="required">*</span></label>
-        <input pInputText formControlName="codigo" placeholder="OBR" />
-        @if (hasErrorAct('codigo')) { <span class="field-error">Requerido</span> }
-      </div>
-      <div class="form-field">
-        <label>Orden <span class="required">*</span></label>
-        <p-inputnumber formControlName="orden" [min]="1" />
-      </div>
-    </div>
     <div class="form-field">
       <label>Nombre <span class="required">*</span></label>
-      <input pInputText formControlName="nombre" placeholder="Obras civiles" />
+      <input pInputText formControlName="nombre" placeholder="Ej: Obras civiles" />
       @if (hasErrorAct('nombre')) { <span class="field-error">Requerido</span> }
     </div>
+    @if (isEditingAct) {
+      <div class="form-field">
+        <label>Orden</label>
+        <p-inputnumber formControlName="orden" [min]="1" />
+      </div>
+    }
   </form>
   <ng-template #footer>
     <div class="dialog-footer">
       <button class="btn-ghost" (click)="showActDialog.set(false)">Cancelar</button>
       <button class="btn-primary" (click)="saveActividad()" [disabled]="savingAct()">
         @if (savingAct()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
-        Guardar
+        {{ isEditingAct ? 'Actualizar' : 'Guardar' }}
       </button>
     </div>
   </ng-template>
 </p-dialog>
 
-<!-- ── Dialog nuevo item ─────────────────────────────────────── -->
+<!-- ── Dialog item ───────────────────────────────────────────── -->
 <p-dialog
-  header="Nuevo Item"
+  [header]="isEditingItem ? 'Editar Item' : 'Nuevo Item'"
   [(visible)]="showItemDialog"
   [modal]="true"
   styleClass="dialog-md"
@@ -200,29 +208,40 @@
       <label>Actividad <span class="required">*</span></label>
       <p-select
         formControlName="actividadId"
-        [options]="actividadOptions().slice(1)"
+        [options]="actividadFormOptions"
         optionLabel="label"
         optionValue="value"
         placeholder="Selecciona actividad"
       />
       @if (hasErrorItem('actividadId')) { <span class="field-error">Requerido</span> }
     </div>
-    <div class="dialog-form__row">
+    @if (!isEditingItem) {
       <div class="form-field">
         <label>Código <span class="required">*</span></label>
         <input pInputText formControlName="codigo" placeholder="OBR-001" />
         @if (hasErrorItem('codigo')) { <span class="field-error">Requerido</span> }
       </div>
+    }
+    <div class="form-field">
+      <label>Descripción <span class="required">*</span></label>
+      <input pInputText formControlName="descripcion" placeholder="Descripción del servicio" />
+      @if (hasErrorItem('descripcion')) { <span class="field-error">Requerido</span> }
+    </div>
+    <div class="dialog-form__row">
       <div class="form-field">
         <label>Unidad <span class="required">*</span></label>
         <input pInputText formControlName="unidad" placeholder="m², m³, und..." />
         @if (hasErrorItem('unidad')) { <span class="field-error">Requerido</span> }
       </div>
-    </div>
-    <div class="form-field">
-      <label>Descripción <span class="required">*</span></label>
-      <input pInputText formControlName="descripcion" placeholder="Descripción del item" />
-      @if (hasErrorItem('descripcion')) { <span class="field-error">Requerido</span> }
+      <div class="form-field">
+        <label>Moneda <span class="required">*</span></label>
+        <p-select
+          formControlName="moneda"
+          [options]="monedaOptions"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
     </div>
     <div class="form-field">
       <label>Precio base <span class="required">*</span></label>
@@ -240,7 +259,7 @@
       <button class="btn-ghost" (click)="showItemDialog.set(false)">Cancelar</button>
       <button class="btn-primary" (click)="saveItem()" [disabled]="savingItem()">
         @if (savingItem()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
-        Guardar
+        {{ isEditingItem ? 'Actualizar' : 'Guardar' }}
       </button>
     </div>
   </ng-template>

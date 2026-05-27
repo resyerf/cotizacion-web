@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -13,10 +13,12 @@ import { CotizacionesService } from '../../../../core/api/cotizaciones.service';
 import { CatalogoService } from '../../../../core/api/catalogo.service';
 import { ItemCatalogoDto } from '../../../../core/models/catalogo.model';
 import {
+  buildGruposActividad,
   CotizacionDetalleDto,
   ESTADO_BADGE,
   ESTADO_LABEL,
   EstadoCotizacion,
+  GrupoActividad,
   MONEDA_SYMBOL,
   TRANSICIONES_VALIDAS
 } from '../../../../core/models/cotizacion.model';
@@ -46,6 +48,10 @@ export class CotizacionDetalleComponent implements OnInit {
 
   cotizacion = signal<CotizacionDetalleDto | null>(null);
   loading = signal(true);
+  grupos = computed<GrupoActividad[]>(() => {
+    const c = this.cotizacion();
+    return c ? buildGruposActividad(c.partidas) : [];
+  });
   showAddPartida = signal(false);
   showChangeEstado = signal(false);
 

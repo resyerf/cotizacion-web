@@ -250,8 +250,7 @@
             <table class="detalle-table">
               <thead>
                 <tr>
-                  <th>Actividad</th>
-                  <th>Código</th>
+                  <th class="col-item">Ítem</th>
                   <th>Descripción</th>
                   <th>Unidad</th>
                   <th class="text-end">Precio Unit.</th>
@@ -260,21 +259,27 @@
                 </tr>
               </thead>
               <tbody>
-                @for (p of d.partidas; track p.id) {
-                  <tr>
-                    <td><span class="actividad-tag">{{ p.actividadNombre }}</span></td>
-                    <td><code class="item-code">{{ p.itemCodigo }}</code></td>
-                    <td>{{ p.itemDescripcion }}</td>
-                    <td>{{ p.itemUnidad }}</td>
-                    <td class="text-end">{{ formatMoneyDetalle(p.precioUnitario) }}</td>
-                    <td class="text-end">{{ p.cantidad ?? '—' }}</td>
-                    <td class="text-end"><strong>{{ formatMoneyDetalle(p.subtotal) }}</strong></td>
+                @for (g of detalleGrupos(); track g.correlativo) {
+                  <tr class="group-header-row">
+                    <td><code class="item-correlativo">{{ g.correlativo }}</code></td>
+                    <td colspan="4" class="group-header-name">{{ g.nombre }}</td>
+                    <td class="text-end group-header-subtotal">{{ formatMoneyDetalle(g.subtotal) }}</td>
                   </tr>
+                  @for (p of g.items; track p.id) {
+                    <tr class="item-row">
+                      <td><code class="item-correlativo item-correlativo--sub">{{ p.correlativo }}</code></td>
+                      <td>{{ p.itemDescripcion }}</td>
+                      <td>{{ p.itemUnidad }}</td>
+                      <td class="text-end">{{ formatMoneyDetalle(p.precioUnitario) }}</td>
+                      <td class="text-end">{{ p.cantidad ?? '—' }}</td>
+                      <td class="text-end"><strong>{{ formatMoneyDetalle(p.subtotal) }}</strong></td>
+                    </tr>
+                  }
                 }
               </tbody>
               <tfoot>
                 <tr class="total-row">
-                  <td colspan="6" class="total-label">Total</td>
+                  <td colspan="5" class="total-label">Total</td>
                   <td class="text-end"><strong class="total-value">{{ formatMoneyDetalle(d.total) }}</strong></td>
                 </tr>
               </tfoot>

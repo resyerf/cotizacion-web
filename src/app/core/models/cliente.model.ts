@@ -15,3 +15,11 @@ export interface CrearClienteCommand {
   telefono?: string;
   direccion?: string;
 }
+
+export interface ActualizarClienteCommand {
+  nombre: string;
+  ruc?: string;
+  email?: string;
+  telefono?: string;
+  direccion?: string;
+}

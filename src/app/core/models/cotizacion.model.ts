@@ -35,9 +35,46 @@ export interface CotizacionPartidaDto {
   itemDescripcion: string;
   itemUnidad: string;
   actividadNombre: string;
+  actividadOrden: number;
   precioUnitario: number;
   cantidad?: number;
   subtotal: number;
+}
+
+export interface PartidaConCorrelativo extends CotizacionPartidaDto {
+  correlativo: string;
+}
+
+export interface GrupoActividad {
+  correlativo: string;
+  nombre: string;
+  subtotal: number;
+  items: PartidaConCorrelativo[];
+}
+
+export function buildGruposActividad(partidas: CotizacionPartidaDto[]): GrupoActividad[] {
+  const sorted = [...partidas].sort((a, b) => a.actividadOrden - b.actividadOrden);
+  const map = new Map<number, { nombre: string; items: CotizacionPartidaDto[] }>();
+
+  for (const p of sorted) {
+    if (!map.has(p.actividadOrden)) {
+      map.set(p.actividadOrden, { nombre: p.actividadNombre, items: [] });
+    }
+    map.get(p.actividadOrden)!.items.push(p);
+  }
+
+  let actIdx = 0;
+  const result: GrupoActividad[] = [];
+  for (const [, group] of map) {
+    actIdx++;
+    result.push({
+      correlativo: `${actIdx}.0`,
+      nombre: group.nombre,
+      subtotal: group.items.reduce((s, p) => s + p.subtotal, 0),
+      items: group.items.map((p, i) => ({ ...p, correlativo: `${actIdx}.${i + 1}` }))
+    });
+  }
+  return result;
 }
 
 export interface CotizacionDetalleDto {

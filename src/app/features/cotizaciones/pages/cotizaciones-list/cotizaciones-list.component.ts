@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -13,11 +13,13 @@ import { CotizacionesService } from '../../../../core/api/cotizaciones.service';
 import { ClientesService } from '../../../../core/api/clientes.service';
 import { ExportService } from '../../../../core/services/pdf-export.service';
 import {
+  buildGruposActividad,
   CotizacionDetalleDto,
   CotizacionResumenDto,
   ESTADO_BADGE,
   ESTADO_LABEL,
   EstadoCotizacion,
+  GrupoActividad,
   MONEDA_LABEL,
   MONEDA_SYMBOL,
   Moneda
@@ -54,6 +56,10 @@ export class CotizacionesListComponent implements OnInit {
   showDetalle = signal(false);
   cotizacionDetalle = signal<CotizacionDetalleDto | null>(null);
   loadingDetalle = signal(false);
+  detalleGrupos = computed<GrupoActividad[]>(() => {
+    const d = this.cotizacionDetalle();
+    return d ? buildGruposActividad(d.partidas) : [];
+  });
 
   // Export state: tracks which id is being exported + type
   exportingId = signal<string | null>(null);
