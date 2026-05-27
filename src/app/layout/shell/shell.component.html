@@ -1,8 +1,32 @@
 <div class="shell">
-  <app-sidebar />
+
+  <!-- ── Mobile topbar ───────────────────────────────────────── -->
+  <header class="topbar d-md-none">
+    <div class="topbar__brand">
+      <div class="topbar__logo"><i class="pi pi-calculator"></i></div>
+      <span class="topbar__name">Cotizaciones</span>
+    </div>
+    <button class="topbar__toggle" (click)="toggleSidebar()" aria-label="Abrir menú">
+      <i class="pi pi-bars"></i>
+    </button>
+  </header>
+
+  <!-- ── Backdrop overlay (mobile) ──────────────────────────── -->
+  <div
+    class="sidebar-overlay"
+    [class.sidebar-overlay--open]="sidebarOpen()"
+    (click)="closeSidebar()"
+    aria-hidden="true"
+  ></div>
+
+  <!-- ── Sidebar ─────────────────────────────────────────────── -->
+  <app-sidebar [open]="sidebarOpen()" (closed)="closeSidebar()" />
+
+  <!-- ── Main content ────────────────────────────────────────── -->
   <main class="shell__main">
     <router-outlet />
   </main>
+
 </div>
 
 <p-toast position="bottom-right" [life]="4000" />

@@ -7,14 +7,13 @@
   </app-page-header>
 
   <div class="filters card">
-    <p-iconfield style="width:100%; max-width:400px">
+    <p-iconfield class="filters__search">
       <p-inputicon styleClass="pi pi-search" />
       <input
         pInputText
         type="text"
         placeholder="Buscar por nombre, RUC o email..."
         [(ngModel)]="searchText"
-        style="width:100%"
       />
     </p-iconfield>
   </div>
@@ -42,9 +41,9 @@
           <td>
             <div class="cliente-name">
               <div class="cliente-avatar">{{ c.nombre.charAt(0).toUpperCase() }}</div>
-              <div>
+              <div class="cliente-name__info">
                 <strong>{{ c.nombre }}</strong>
-                @if (c.direccion) { <span class="text-muted">{{ c.direccion }}</span> }
+                @if (c.direccion) { <span class="cliente-name__address">{{ c.direccion }}</span> }
               </div>
             </div>
           </td>
@@ -79,46 +78,48 @@
   </div>
 </div>
 
-<!-- Dialog crear cliente -->
+<!-- ── Dialog crear cliente ──────────────────────────────────── -->
 <p-dialog
   header="Nuevo Cliente"
   [(visible)]="showDialog"
   [modal]="true"
-  [style]="{ width: '520px' }"
+  styleClass="dialog-md"
   (visibleChange)="showDialog.set($event)"
 >
   <form [formGroup]="form" class="dialog-form">
     <div class="form-field">
       <label>Nombre <span class="required">*</span></label>
-      <input pInputText formControlName="nombre" placeholder="Razón social o nombre" style="width:100%" />
+      <input pInputText formControlName="nombre" placeholder="Razón social o nombre" />
       @if (hasError('nombre')) { <span class="field-error">Mínimo 2 caracteres</span> }
     </div>
     <div class="dialog-form__row">
       <div class="form-field">
         <label>RUC</label>
-        <input pInputText formControlName="ruc" placeholder="20123456789" style="width:100%" />
+        <input pInputText formControlName="ruc" placeholder="20123456789" />
       </div>
       <div class="form-field">
         <label>Teléfono</label>
-        <input pInputText formControlName="telefono" placeholder="+51 999 999 999" style="width:100%" />
+        <input pInputText formControlName="telefono" placeholder="+51 999 999 999" />
       </div>
     </div>
     <div class="form-field">
       <label>Email</label>
-      <input pInputText formControlName="email" placeholder="contacto@empresa.com" type="email" style="width:100%" />
+      <input pInputText formControlName="email" placeholder="contacto@empresa.com" type="email" />
       @if (hasError('email')) { <span class="field-error">Email inválido</span> }
     </div>
     <div class="form-field">
       <label>Dirección</label>
-      <input pInputText formControlName="direccion" placeholder="Av. Ejemplo 123, Lima" style="width:100%" />
+      <input pInputText formControlName="direccion" placeholder="Av. Ejemplo 123, Lima" />
     </div>
   </form>
 
   <ng-template #footer>
-    <button class="btn-ghost" (click)="showDialog.set(false)">Cancelar</button>
-    <button class="btn-primary" (click)="save()" [disabled]="saving()">
-      @if (saving()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
-      Guardar
-    </button>
+    <div class="dialog-footer">
+      <button class="btn-ghost" (click)="showDialog.set(false)">Cancelar</button>
+      <button class="btn-primary" (click)="save()" [disabled]="saving()">
+        @if (saving()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
+        Guardar
+      </button>
+    </div>
   </ng-template>
 </p-dialog>

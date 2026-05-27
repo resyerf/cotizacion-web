@@ -1,9 +1,13 @@
-<aside class="sidebar">
+<aside class="sidebar" [class.sidebar--open]="open()">
+
   <div class="sidebar__brand">
     <div class="sidebar__logo">
       <i class="pi pi-calculator"></i>
     </div>
     <span class="sidebar__app-name">Cotizaciones</span>
+    <button class="sidebar__close d-md-none" (click)="close()" aria-label="Cerrar menú">
+      <i class="pi pi-times"></i>
+    </button>
   </div>
 
   <nav class="sidebar__nav">
@@ -14,6 +18,7 @@
         [routerLink]="item.route"
         routerLinkActive="sidebar__item--active"
         [routerLinkActiveOptions]="{ exact: false }"
+        (click)="close()"
       >
         <i [class]="item.icon"></i>
         <span>{{ item.label }}</span>
@@ -24,4 +29,5 @@
   <div class="sidebar__footer">
     <div class="sidebar__version">v1.0.0</div>
   </div>
+
 </aside>

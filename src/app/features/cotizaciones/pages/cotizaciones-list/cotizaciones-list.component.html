@@ -6,20 +6,20 @@
     </a>
   </app-page-header>
 
-  <!-- Filtros -->
+  <!-- ── Filtros ─────────────────────────────────────────────── -->
   <div class="filters card">
-    <p-iconfield>
+    <p-iconfield class="filters__search">
       <p-inputicon styleClass="pi pi-search" />
       <input
         pInputText
         type="text"
         placeholder="Buscar por número, proyecto o cliente..."
         [(ngModel)]="searchText"
-        class="filter-search"
       />
     </p-iconfield>
 
     <p-select
+      class="filters__select"
       [options]="estadoOptions"
       [(ngModel)]="selectedEstado"
       optionLabel="label"
@@ -29,6 +29,7 @@
     />
 
     <p-select
+      class="filters__select"
       [options]="clienteOptions()"
       [(ngModel)]="selectedClienteId"
       optionLabel="label"
@@ -38,7 +39,7 @@
     />
   </div>
 
-  <!-- Tabla -->
+  <!-- ── Tabla ───────────────────────────────────────────────── -->
   <div class="card table-card">
     <p-table
       [value]="filteredCotizaciones"
@@ -55,7 +56,7 @@
           <th>Cliente</th>
           <th>Fecha</th>
           <th>Moneda</th>
-          <th>Total</th>
+          <th class="text-end">Total</th>
           <th>Estado</th>
           <th class="col-actions"></th>
         </tr>
@@ -70,7 +71,7 @@
             <div class="proyecto-cell">
               <span>{{ c.proyecto }}</span>
               @if (c.ubicacion) {
-                <span class="ubicacion">{{ c.ubicacion }}</span>
+                <span class="proyecto-cell__ubicacion">{{ c.ubicacion }}</span>
               }
             </div>
           </td>
@@ -79,7 +80,7 @@
           <td>
             <span class="moneda-badge">{{ c.moneda === 1 ? 'USD' : c.moneda === 2 ? 'PEN' : 'EUR' }}</span>
           </td>
-          <td>
+          <td class="text-end">
             <strong>{{ formatMoney(c.total, c.moneda) }}</strong>
           </td>
           <td>
@@ -89,7 +90,7 @@
             <div class="row-actions">
               <button class="action-btn action-btn--detail" (click)="openDetalle(c.id)" title="Ver detalle">
                 <i class="pi pi-eye"></i>
-                <span>Detalle</span>
+                <span class="d-none d-lg-inline">Detalle</span>
               </button>
 
               <button
@@ -103,7 +104,7 @@
                 } @else {
                   <i class="pi pi-file-pdf"></i>
                 }
-                <span>PDF</span>
+                <span class="d-none d-lg-inline">PDF</span>
               </button>
 
               <button
@@ -117,7 +118,7 @@
                 } @else {
                   <i class="pi pi-file-excel"></i>
                 }
-                <span>Excel</span>
+                <span class="d-none d-lg-inline">Excel</span>
               </button>
 
               <a [routerLink]="c.id" class="action-btn action-btn--nav" title="Ir al detalle completo">
@@ -150,12 +151,12 @@
   </div>
 </div>
 
-<!-- ─── Dialog: Detalle Cotización ───────────────────────────── -->
+<!-- ── Dialog: Detalle Cotización ──────────────────────────── -->
 <p-dialog
   header="Detalle de Cotización"
   [(visible)]="showDetalle"
   [modal]="true"
-  [style]="{ width: '860px', maxWidth: '95vw' }"
+  styleClass="dialog-lg"
   [draggable]="false"
   [resizable]="false"
   (visibleChange)="showDetalle.set($event)"
@@ -170,7 +171,7 @@
   @if (!loadingDetalle() && cotizacionDetalle(); as d) {
     <div class="detalle-dialog">
 
-      <!-- Header info strip -->
+      <!-- Header strip -->
       <div class="detalle-header-strip">
         <div class="detalle-header-strip__left">
           <span class="detalle-numero">COT-{{ d.numero }}</span>
@@ -193,27 +194,35 @@
       </div>
 
       <!-- Meta cards -->
-      <div class="detalle-meta-grid">
-        <div class="detalle-meta-card">
-          <span class="detalle-meta-card__label">Proyecto</span>
-          <strong>{{ d.proyecto }}</strong>
-          @if (d.ubicacion) { <span class="detalle-meta-card__sub">{{ d.ubicacion }}</span> }
+      <div class="row g-2">
+        <div class="col-6 col-md-3">
+          <div class="detalle-meta-card">
+            <span class="detalle-meta-card__label">Proyecto</span>
+            <strong>{{ d.proyecto }}</strong>
+            @if (d.ubicacion) { <span class="detalle-meta-card__sub">{{ d.ubicacion }}</span> }
+          </div>
         </div>
-        <div class="detalle-meta-card">
-          <span class="detalle-meta-card__label">Cliente</span>
-          <strong>{{ d.cliente.nombre }}</strong>
-          @if (d.cliente.ruc) { <span class="detalle-meta-card__sub">RUC: {{ d.cliente.ruc }}</span> }
-          @if (d.cliente.email) { <span class="detalle-meta-card__sub">{{ d.cliente.email }}</span> }
+        <div class="col-6 col-md-3">
+          <div class="detalle-meta-card">
+            <span class="detalle-meta-card__label">Cliente</span>
+            <strong>{{ d.cliente.nombre }}</strong>
+            @if (d.cliente.ruc) { <span class="detalle-meta-card__sub">RUC: {{ d.cliente.ruc }}</span> }
+            @if (d.cliente.email) { <span class="detalle-meta-card__sub">{{ d.cliente.email }}</span> }
+          </div>
         </div>
-        <div class="detalle-meta-card">
-          <span class="detalle-meta-card__label">Fecha</span>
-          <strong>{{ d.fecha }}</strong>
-          @if (d.fechaValidez) { <span class="detalle-meta-card__sub">Válida hasta {{ d.fechaValidez }}</span> }
+        <div class="col-6 col-md-3">
+          <div class="detalle-meta-card">
+            <span class="detalle-meta-card__label">Fecha</span>
+            <strong>{{ d.fecha }}</strong>
+            @if (d.fechaValidez) { <span class="detalle-meta-card__sub">Válida hasta {{ d.fechaValidez }}</span> }
+          </div>
         </div>
-        <div class="detalle-meta-card detalle-meta-card--highlight">
-          <span class="detalle-meta-card__label">Total</span>
-          <strong class="detalle-meta-card__total">{{ formatMoneyDetalle(d.total) }}</strong>
-          <span class="detalle-meta-card__sub">{{ monedaLabel(d.moneda) }}</span>
+        <div class="col-6 col-md-3">
+          <div class="detalle-meta-card detalle-meta-card--highlight">
+            <span class="detalle-meta-card__label">Total</span>
+            <strong class="detalle-meta-card__total">{{ formatMoneyDetalle(d.total) }}</strong>
+            <span class="detalle-meta-card__sub">{{ monedaLabel(d.moneda) }}</span>
+          </div>
         </div>
       </div>
 
@@ -245,9 +254,9 @@
                   <th>Código</th>
                   <th>Descripción</th>
                   <th>Unidad</th>
-                  <th class="text-right">Precio Unit.</th>
-                  <th class="text-right">Cantidad</th>
-                  <th class="text-right">Subtotal</th>
+                  <th class="text-end">Precio Unit.</th>
+                  <th class="text-end">Cantidad</th>
+                  <th class="text-end">Subtotal</th>
                 </tr>
               </thead>
               <tbody>
@@ -257,16 +266,16 @@
                     <td><code class="item-code">{{ p.itemCodigo }}</code></td>
                     <td>{{ p.itemDescripcion }}</td>
                     <td>{{ p.itemUnidad }}</td>
-                    <td class="text-right">{{ formatMoneyDetalle(p.precioUnitario) }}</td>
-                    <td class="text-right">{{ p.cantidad ?? '—' }}</td>
-                    <td class="text-right"><strong>{{ formatMoneyDetalle(p.subtotal) }}</strong></td>
+                    <td class="text-end">{{ formatMoneyDetalle(p.precioUnitario) }}</td>
+                    <td class="text-end">{{ p.cantidad ?? '—' }}</td>
+                    <td class="text-end"><strong>{{ formatMoneyDetalle(p.subtotal) }}</strong></td>
                   </tr>
                 }
               </tbody>
               <tfoot>
                 <tr class="total-row">
-                  <td colspan="6" class="text-right total-label">Total</td>
-                  <td class="text-right"><strong class="total-value">{{ formatMoneyDetalle(d.total) }}</strong></td>
+                  <td colspan="6" class="total-label">Total</td>
+                  <td class="text-end"><strong class="total-value">{{ formatMoneyDetalle(d.total) }}</strong></td>
                 </tr>
               </tfoot>
             </table>
@@ -278,7 +287,7 @@
   }
 
   <ng-template #footer>
-    <div class="detalle-dialog-footer">
+    <div class="dialog-footer">
       <button class="btn-ghost" (click)="showDetalle.set(false)">Cerrar</button>
       @if (cotizacionDetalle(); as d) {
         <a [routerLink]="d.id" class="btn-primary" (click)="showDetalle.set(false)">

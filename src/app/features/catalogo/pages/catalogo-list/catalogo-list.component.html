@@ -8,11 +8,11 @@
     </p-tablist>
 
     <p-tabpanels>
-      <!-- ITEMS -->
+      <!-- ── ITEMS ──────────────────────────────────────────── -->
       <p-tabpanel value="items">
         <div class="tab-toolbar">
           <div class="tab-toolbar__filters">
-            <p-iconfield>
+            <p-iconfield class="tab-toolbar__search">
               <p-inputicon styleClass="pi pi-search" />
               <input
                 pInputText
@@ -22,6 +22,7 @@
               />
             </p-iconfield>
             <p-select
+              class="tab-toolbar__select"
               [options]="actividadOptions()"
               [(ngModel)]="filterActividadId"
               optionLabel="label"
@@ -50,7 +51,7 @@
                 <th>Descripción</th>
                 <th>Actividad</th>
                 <th>Unidad</th>
-                <th style="text-align:right">Precio base</th>
+                <th class="text-end">Precio base</th>
                 <th>Estado</th>
               </tr>
             </ng-template>
@@ -60,7 +61,7 @@
                 <td>{{ i.descripcion }}</td>
                 <td><span class="actividad-tag">{{ i.actividadNombre }}</span></td>
                 <td>{{ i.unidad }}</td>
-                <td style="text-align:right">
+                <td class="text-end">
                   <strong>{{ i.precioBase | number:'1.2-2' }}</strong>
                 </td>
                 <td>
@@ -90,7 +91,7 @@
         </div>
       </p-tabpanel>
 
-      <!-- ACTIVIDADES -->
+      <!-- ── ACTIVIDADES ────────────────────────────────────── -->
       <p-tabpanel value="actividades">
         <div class="tab-toolbar">
           <div></div>
@@ -149,47 +150,49 @@
   </p-tabs>
 </div>
 
-<!-- Dialog nueva actividad -->
+<!-- ── Dialog nueva actividad ───────────────────────────────── -->
 <p-dialog
   header="Nueva Actividad"
   [(visible)]="showActDialog"
   [modal]="true"
-  [style]="{ width: '440px' }"
+  styleClass="dialog-sm"
   (visibleChange)="showActDialog.set($event)"
 >
   <form [formGroup]="formAct" class="dialog-form">
     <div class="dialog-form__row">
       <div class="form-field">
         <label>Código <span class="required">*</span></label>
-        <input pInputText formControlName="codigo" placeholder="OBR" style="width:100%" />
+        <input pInputText formControlName="codigo" placeholder="OBR" />
         @if (hasErrorAct('codigo')) { <span class="field-error">Requerido</span> }
       </div>
       <div class="form-field">
         <label>Orden <span class="required">*</span></label>
-        <p-inputnumber formControlName="orden" [min]="1" style="width:100%" />
+        <p-inputnumber formControlName="orden" [min]="1" />
       </div>
     </div>
     <div class="form-field">
       <label>Nombre <span class="required">*</span></label>
-      <input pInputText formControlName="nombre" placeholder="Obras civiles" style="width:100%" />
+      <input pInputText formControlName="nombre" placeholder="Obras civiles" />
       @if (hasErrorAct('nombre')) { <span class="field-error">Requerido</span> }
     </div>
   </form>
   <ng-template #footer>
-    <button class="btn-ghost" (click)="showActDialog.set(false)">Cancelar</button>
-    <button class="btn-primary" (click)="saveActividad()" [disabled]="savingAct()">
-      @if (savingAct()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
-      Guardar
-    </button>
+    <div class="dialog-footer">
+      <button class="btn-ghost" (click)="showActDialog.set(false)">Cancelar</button>
+      <button class="btn-primary" (click)="saveActividad()" [disabled]="savingAct()">
+        @if (savingAct()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
+        Guardar
+      </button>
+    </div>
   </ng-template>
 </p-dialog>
 
-<!-- Dialog nuevo item -->
+<!-- ── Dialog nuevo item ─────────────────────────────────────── -->
 <p-dialog
   header="Nuevo Item"
   [(visible)]="showItemDialog"
   [modal]="true"
-  [style]="{ width: '560px' }"
+  styleClass="dialog-md"
   (visibleChange)="showItemDialog.set($event)"
 >
   <form [formGroup]="formItem" class="dialog-form">
@@ -201,25 +204,24 @@
         optionLabel="label"
         optionValue="value"
         placeholder="Selecciona actividad"
-        style="width:100%"
       />
       @if (hasErrorItem('actividadId')) { <span class="field-error">Requerido</span> }
     </div>
     <div class="dialog-form__row">
       <div class="form-field">
         <label>Código <span class="required">*</span></label>
-        <input pInputText formControlName="codigo" placeholder="OBR-001" style="width:100%" />
+        <input pInputText formControlName="codigo" placeholder="OBR-001" />
         @if (hasErrorItem('codigo')) { <span class="field-error">Requerido</span> }
       </div>
       <div class="form-field">
         <label>Unidad <span class="required">*</span></label>
-        <input pInputText formControlName="unidad" placeholder="m², m³, und..." style="width:100%" />
+        <input pInputText formControlName="unidad" placeholder="m², m³, und..." />
         @if (hasErrorItem('unidad')) { <span class="field-error">Requerido</span> }
       </div>
     </div>
     <div class="form-field">
       <label>Descripción <span class="required">*</span></label>
-      <input pInputText formControlName="descripcion" placeholder="Descripción del item" style="width:100%" />
+      <input pInputText formControlName="descripcion" placeholder="Descripción del item" />
       @if (hasErrorItem('descripcion')) { <span class="field-error">Requerido</span> }
     </div>
     <div class="form-field">
@@ -230,15 +232,16 @@
         [maxFractionDigits]="2"
         [min]="0"
         placeholder="0.00"
-        style="width:100%"
       />
     </div>
   </form>
   <ng-template #footer>
-    <button class="btn-ghost" (click)="showItemDialog.set(false)">Cancelar</button>
-    <button class="btn-primary" (click)="saveItem()" [disabled]="savingItem()">
-      @if (savingItem()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
-      Guardar
-    </button>
+    <div class="dialog-footer">
+      <button class="btn-ghost" (click)="showItemDialog.set(false)">Cancelar</button>
+      <button class="btn-primary" (click)="saveItem()" [disabled]="savingItem()">
+        @if (savingItem()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
+        Guardar
+      </button>
+    </div>
   </ng-template>
 </p-dialog>

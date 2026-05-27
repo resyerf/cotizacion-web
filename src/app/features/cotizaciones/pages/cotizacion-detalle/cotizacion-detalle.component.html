@@ -7,46 +7,55 @@
 
 @if (!loading() && cotizacion(); as c) {
   <div class="page">
-    <!-- Header -->
+
+    <!-- ── Header ─────────────────────────────────────────────── -->
     <app-page-header [title]="'COT-' + c.numero" [subtitle]="c.proyecto">
       <a routerLink="/cotizaciones" class="btn-ghost">
         <i class="pi pi-arrow-left"></i>
-        Cotizaciones
+        <span class="d-none d-sm-inline">Cotizaciones</span>
       </a>
       @if (canChangeEstado) {
         <button class="btn-secondary" (click)="openChangeEstado()">
           <i class="pi pi-refresh"></i>
-          Cambiar estado
+          <span class="d-none d-sm-inline">Cambiar estado</span>
         </button>
       }
       @if (canEdit) {
         <button class="btn-primary" (click)="openAddPartida()">
           <i class="pi pi-plus"></i>
-          Agregar partida
+          <span class="d-none d-sm-inline">Agregar partida</span>
         </button>
       }
     </app-page-header>
 
-    <!-- Meta info -->
-    <div class="meta-grid">
-      <div class="card meta-card">
-        <span class="meta-card__label">Estado</span>
-        <span [class]="'badge ' + estadoBadge(c.estado)">{{ estadoLabel(c.estado) }}</span>
+    <!-- ── Meta info cards ────────────────────────────────────── -->
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-md-3">
+        <div class="card meta-card">
+          <span class="meta-card__label">Estado</span>
+          <span [class]="'badge ' + estadoBadge(c.estado)">{{ estadoLabel(c.estado) }}</span>
+        </div>
       </div>
-      <div class="card meta-card">
-        <span class="meta-card__label">Cliente</span>
-        <strong>{{ c.cliente.nombre }}</strong>
-        @if (c.cliente.ruc) { <span class="meta-card__sub">RUC: {{ c.cliente.ruc }}</span> }
+      <div class="col-6 col-md-3">
+        <div class="card meta-card">
+          <span class="meta-card__label">Cliente</span>
+          <strong>{{ c.cliente.nombre }}</strong>
+          @if (c.cliente.ruc) { <span class="meta-card__sub">RUC: {{ c.cliente.ruc }}</span> }
+        </div>
       </div>
-      <div class="card meta-card">
-        <span class="meta-card__label">Fecha</span>
-        <strong>{{ c.fecha }}</strong>
-        @if (c.fechaValidez) { <span class="meta-card__sub">Válida hasta {{ c.fechaValidez }}</span> }
+      <div class="col-6 col-md-3">
+        <div class="card meta-card">
+          <span class="meta-card__label">Fecha</span>
+          <strong>{{ c.fecha }}</strong>
+          @if (c.fechaValidez) { <span class="meta-card__sub">Válida hasta {{ c.fechaValidez }}</span> }
+        </div>
       </div>
-      <div class="card meta-card meta-card--highlight">
-        <span class="meta-card__label">Total</span>
-        <strong class="meta-card__total">{{ formatMoney(c.total) }}</strong>
-        <span class="meta-card__sub">{{ c.moneda === 1 ? 'USD' : c.moneda === 2 ? 'PEN' : 'EUR' }}</span>
+      <div class="col-6 col-md-3">
+        <div class="card meta-card meta-card--highlight">
+          <span class="meta-card__label">Total</span>
+          <strong class="meta-card__total">{{ formatMoney(c.total) }}</strong>
+          <span class="meta-card__sub">{{ c.moneda === 1 ? 'USD' : c.moneda === 2 ? 'PEN' : 'EUR' }}</span>
+        </div>
       </div>
     </div>
 
@@ -67,7 +76,7 @@
       </div>
     }
 
-    <!-- Partidas -->
+    <!-- ── Partidas ───────────────────────────────────────────── -->
     <div class="card partidas-card">
       <div class="partidas-header">
         <h3>Partidas</h3>
@@ -95,9 +104,9 @@
               <th>Código</th>
               <th>Descripción</th>
               <th>Unidad</th>
-              <th style="text-align:right">Precio Unit.</th>
-              <th style="text-align:right">Cantidad</th>
-              <th style="text-align:right">Subtotal</th>
+              <th class="text-end">Precio Unit.</th>
+              <th class="text-end">Cantidad</th>
+              <th class="text-end">Subtotal</th>
             </tr>
           </ng-template>
           <ng-template #body let-p>
@@ -106,15 +115,15 @@
               <td><code class="item-code">{{ p.itemCodigo }}</code></td>
               <td>{{ p.itemDescripcion }}</td>
               <td>{{ p.itemUnidad }}</td>
-              <td style="text-align:right">{{ formatMoney(p.precioUnitario) }}</td>
-              <td style="text-align:right">{{ p.cantidad ?? '—' }}</td>
-              <td style="text-align:right"><strong>{{ formatMoney(p.subtotal) }}</strong></td>
+              <td class="text-end">{{ formatMoney(p.precioUnitario) }}</td>
+              <td class="text-end">{{ p.cantidad ?? '—' }}</td>
+              <td class="text-end"><strong>{{ formatMoney(p.subtotal) }}</strong></td>
             </tr>
           </ng-template>
           <ng-template #footer>
             <tr class="total-row">
-              <td colspan="6" style="text-align:right; font-weight:600; padding-right:16px">Total</td>
-              <td style="text-align:right"><strong class="total-value">{{ formatMoney(c.total) }}</strong></td>
+              <td colspan="6" class="total-label">Total</td>
+              <td class="text-end"><strong class="total-value">{{ formatMoney(c.total) }}</strong></td>
             </tr>
           </ng-template>
         </p-table>
@@ -123,12 +132,12 @@
   </div>
 }
 
-<!-- Dialog: Agregar partida -->
+<!-- ── Dialog: Agregar partida ──────────────────────────────── -->
 <p-dialog
   header="Agregar Partida"
   [(visible)]="showAddPartida"
   [modal]="true"
-  [style]="{ width: '560px' }"
+  styleClass="dialog-md"
   (visibleChange)="showAddPartida.set($event)"
 >
   <div class="dialog-form">
@@ -143,7 +152,6 @@
         filter
         filterPlaceholder="Buscar..."
         (onChange)="onItemSelected(selectedItemId)"
-        style="width:100%"
       />
     </div>
     <div class="dialog-form__row">
@@ -155,7 +163,6 @@
           [maxFractionDigits]="2"
           [min]="0.01"
           placeholder="0.00"
-          style="width:100%"
         />
       </div>
       <div class="form-field">
@@ -166,35 +173,33 @@
           [maxFractionDigits]="3"
           [min]="0"
           placeholder="Opcional"
-          style="width:100%"
         />
       </div>
     </div>
   </div>
 
   <ng-template #footer>
-    <button class="btn-ghost" (click)="showAddPartida.set(false)">Cancelar</button>
-    <button
-      class="btn-primary"
-      (click)="addPartida()"
-      [disabled]="!selectedItemId || precioUnitario <= 0 || addingSaving()"
-    >
-      @if (addingSaving()) {
-        <i class="pi pi-spin pi-spinner"></i>
-      } @else {
-        <i class="pi pi-plus"></i>
-      }
-      Agregar
-    </button>
+    <div class="dialog-footer">
+      <button class="btn-ghost" (click)="showAddPartida.set(false)">Cancelar</button>
+      <button
+        class="btn-primary"
+        (click)="addPartida()"
+        [disabled]="!selectedItemId || precioUnitario <= 0 || addingSaving()"
+      >
+        @if (addingSaving()) { <i class="pi pi-spin pi-spinner"></i> }
+        @else { <i class="pi pi-plus"></i> }
+        Agregar
+      </button>
+    </div>
   </ng-template>
 </p-dialog>
 
-<!-- Dialog: Cambiar estado -->
+<!-- ── Dialog: Cambiar estado ────────────────────────────────── -->
 <p-dialog
   header="Cambiar Estado"
   [(visible)]="showChangeEstado"
   [modal]="true"
-  [style]="{ width: '400px' }"
+  styleClass="dialog-sm"
   (visibleChange)="showChangeEstado.set($event)"
 >
   <div class="dialog-form">
@@ -205,24 +210,22 @@
         [(ngModel)]="nuevoEstado"
         optionLabel="label"
         optionValue="value"
-        style="width:100%"
       />
     </div>
   </div>
 
   <ng-template #footer>
-    <button class="btn-ghost" (click)="showChangeEstado.set(false)">Cancelar</button>
-    <button
-      class="btn-primary"
-      (click)="changeEstado()"
-      [disabled]="!nuevoEstado || changingEstado()"
-    >
-      @if (changingEstado()) {
-        <i class="pi pi-spin pi-spinner"></i>
-      } @else {
-        <i class="pi pi-check"></i>
-      }
-      Confirmar
-    </button>
+    <div class="dialog-footer">
+      <button class="btn-ghost" (click)="showChangeEstado.set(false)">Cancelar</button>
+      <button
+        class="btn-primary"
+        (click)="changeEstado()"
+        [disabled]="!nuevoEstado || changingEstado()"
+      >
+        @if (changingEstado()) { <i class="pi pi-spin pi-spinner"></i> }
+        @else { <i class="pi pi-check"></i> }
+        Confirmar
+      </button>
+    </div>
   </ng-template>
 </p-dialog>
