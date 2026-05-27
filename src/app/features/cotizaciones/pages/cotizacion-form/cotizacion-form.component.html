@@ -1,0 +1,119 @@
+<div class="page">
+  <app-page-header title="Nueva Cotización" subtitle="Completa los datos para crear una cotización">
+    <a routerLink="/cotizaciones" class="btn-ghost">
+      <i class="pi pi-arrow-left"></i>
+      Volver
+    </a>
+  </app-page-header>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-card card">
+    <div class="form-section">
+      <h3 class="form-section__title">Información general</h3>
+
+      <div class="form-grid">
+        <div class="form-field form-field--full">
+          <label for="clienteId">Cliente <span class="required">*</span></label>
+          <p-select
+            id="clienteId"
+            formControlName="clienteId"
+            [options]="clienteOptions()"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecciona un cliente"
+            [class.ng-invalid]="hasError('clienteId')"
+            filter
+            filterPlaceholder="Buscar cliente..."
+          />
+          @if (hasError('clienteId')) {
+            <span class="field-error">El cliente es requerido</span>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="proyecto">Proyecto <span class="required">*</span></label>
+          <input
+            pInputText
+            id="proyecto"
+            formControlName="proyecto"
+            placeholder="Nombre del proyecto"
+            [class.ng-invalid]="hasError('proyecto')"
+          />
+          @if (hasError('proyecto')) {
+            <span class="field-error">Mínimo 3 caracteres</span>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="ubicacion">Ubicación</label>
+          <input
+            pInputText
+            id="ubicacion"
+            formControlName="ubicacion"
+            placeholder="Ej: Lima, Perú"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="fecha">Fecha de cotización <span class="required">*</span></label>
+          <p-datepicker
+            id="fecha"
+            formControlName="fecha"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            placeholder="dd/mm/aaaa"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="fechaValidez">Válida hasta</label>
+          <p-datepicker
+            id="fechaValidez"
+            formControlName="fechaValidez"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            placeholder="dd/mm/aaaa (opcional)"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="moneda">Moneda <span class="required">*</span></label>
+          <p-select
+            id="moneda"
+            formControlName="moneda"
+            [options]="monedaOptions"
+            optionLabel="label"
+            optionValue="value"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3 class="form-section__title">Observaciones</h3>
+      <div class="form-field">
+        <label for="notas">Notas adicionales</label>
+        <textarea
+          pTextarea
+          id="notas"
+          formControlName="notas"
+          rows="4"
+          placeholder="Condiciones, términos, observaciones..."
+          style="resize: vertical; width: 100%"
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/cotizaciones" class="btn-ghost">Cancelar</a>
+      <button type="submit" class="btn-primary" [disabled]="saving()">
+        @if (saving()) {
+          <i class="pi pi-spin pi-spinner"></i>
+          Guardando...
+        } @else {
+          <i class="pi pi-check"></i>
+          Crear cotización
+        }
+      </button>
+    </div>
+  </form>
+</div>

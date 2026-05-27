@@ -1,0 +1,228 @@
+@if (loading()) {
+  <div class="loading-page">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>Cargando cotización...</span>
+  </div>
+}
+
+@if (!loading() && cotizacion(); as c) {
+  <div class="page">
+    <!-- Header -->
+    <app-page-header [title]="'COT-' + c.numero" [subtitle]="c.proyecto">
+      <a routerLink="/cotizaciones" class="btn-ghost">
+        <i class="pi pi-arrow-left"></i>
+        Cotizaciones
+      </a>
+      @if (canChangeEstado) {
+        <button class="btn-secondary" (click)="openChangeEstado()">
+          <i class="pi pi-refresh"></i>
+          Cambiar estado
+        </button>
+      }
+      @if (canEdit) {
+        <button class="btn-primary" (click)="openAddPartida()">
+          <i class="pi pi-plus"></i>
+          Agregar partida
+        </button>
+      }
+    </app-page-header>
+
+    <!-- Meta info -->
+    <div class="meta-grid">
+      <div class="card meta-card">
+        <span class="meta-card__label">Estado</span>
+        <span [class]="'badge ' + estadoBadge(c.estado)">{{ estadoLabel(c.estado) }}</span>
+      </div>
+      <div class="card meta-card">
+        <span class="meta-card__label">Cliente</span>
+        <strong>{{ c.cliente.nombre }}</strong>
+        @if (c.cliente.ruc) { <span class="meta-card__sub">RUC: {{ c.cliente.ruc }}</span> }
+      </div>
+      <div class="card meta-card">
+        <span class="meta-card__label">Fecha</span>
+        <strong>{{ c.fecha }}</strong>
+        @if (c.fechaValidez) { <span class="meta-card__sub">Válida hasta {{ c.fechaValidez }}</span> }
+      </div>
+      <div class="card meta-card meta-card--highlight">
+        <span class="meta-card__label">Total</span>
+        <strong class="meta-card__total">{{ formatMoney(c.total) }}</strong>
+        <span class="meta-card__sub">{{ c.moneda === 1 ? 'USD' : c.moneda === 2 ? 'PEN' : 'EUR' }}</span>
+      </div>
+    </div>
+
+    @if (c.ubicacion || c.notas) {
+      <div class="card info-section">
+        @if (c.ubicacion) {
+          <div class="info-item">
+            <i class="pi pi-map-marker"></i>
+            <span>{{ c.ubicacion }}</span>
+          </div>
+        }
+        @if (c.notas) {
+          <div class="info-item">
+            <i class="pi pi-comment"></i>
+            <span>{{ c.notas }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Partidas -->
+    <div class="card partidas-card">
+      <div class="partidas-header">
+        <h3>Partidas</h3>
+        <span class="partidas-count">{{ c.partidas.length }} item{{ c.partidas.length !== 1 ? 's' : '' }}</span>
+      </div>
+
+      @if (c.partidas.length === 0) {
+        <app-empty-state
+          icon="pi pi-list"
+          title="Sin partidas"
+          description="Agrega los items y servicios que incluye esta cotización."
+        >
+          @if (canEdit) {
+            <button class="btn-primary" (click)="openAddPartida()">
+              <i class="pi pi-plus"></i>
+              Agregar primera partida
+            </button>
+          }
+        </app-empty-state>
+      } @else {
+        <p-table [value]="c.partidas" dataKey="id" responsiveLayout="scroll">
+          <ng-template #header>
+            <tr>
+              <th>Actividad</th>
+              <th>Código</th>
+              <th>Descripción</th>
+              <th>Unidad</th>
+              <th style="text-align:right">Precio Unit.</th>
+              <th style="text-align:right">Cantidad</th>
+              <th style="text-align:right">Subtotal</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-p>
+            <tr>
+              <td><span class="actividad-tag">{{ p.actividadNombre }}</span></td>
+              <td><code class="item-code">{{ p.itemCodigo }}</code></td>
+              <td>{{ p.itemDescripcion }}</td>
+              <td>{{ p.itemUnidad }}</td>
+              <td style="text-align:right">{{ formatMoney(p.precioUnitario) }}</td>
+              <td style="text-align:right">{{ p.cantidad ?? '—' }}</td>
+              <td style="text-align:right"><strong>{{ formatMoney(p.subtotal) }}</strong></td>
+            </tr>
+          </ng-template>
+          <ng-template #footer>
+            <tr class="total-row">
+              <td colspan="6" style="text-align:right; font-weight:600; padding-right:16px">Total</td>
+              <td style="text-align:right"><strong class="total-value">{{ formatMoney(c.total) }}</strong></td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </div>
+  </div>
+}
+
+<!-- Dialog: Agregar partida -->
+<p-dialog
+  header="Agregar Partida"
+  [(visible)]="showAddPartida"
+  [modal]="true"
+  [style]="{ width: '560px' }"
+  (visibleChange)="showAddPartida.set($event)"
+>
+  <div class="dialog-form">
+    <div class="form-field">
+      <label>Item del catálogo <span class="required">*</span></label>
+      <p-select
+        [options]="itemOptions()"
+        [(ngModel)]="selectedItemId"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Buscar item..."
+        filter
+        filterPlaceholder="Buscar..."
+        (onChange)="onItemSelected(selectedItemId)"
+        style="width:100%"
+      />
+    </div>
+    <div class="dialog-form__row">
+      <div class="form-field">
+        <label>Precio unitario <span class="required">*</span></label>
+        <p-inputnumber
+          [(ngModel)]="precioUnitario"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="2"
+          [min]="0.01"
+          placeholder="0.00"
+          style="width:100%"
+        />
+      </div>
+      <div class="form-field">
+        <label>Cantidad</label>
+        <p-inputnumber
+          [(ngModel)]="cantidad"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="3"
+          [min]="0"
+          placeholder="Opcional"
+          style="width:100%"
+        />
+      </div>
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <button class="btn-ghost" (click)="showAddPartida.set(false)">Cancelar</button>
+    <button
+      class="btn-primary"
+      (click)="addPartida()"
+      [disabled]="!selectedItemId || precioUnitario <= 0 || addingSaving()"
+    >
+      @if (addingSaving()) {
+        <i class="pi pi-spin pi-spinner"></i>
+      } @else {
+        <i class="pi pi-plus"></i>
+      }
+      Agregar
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog: Cambiar estado -->
+<p-dialog
+  header="Cambiar Estado"
+  [(visible)]="showChangeEstado"
+  [modal]="true"
+  [style]="{ width: '400px' }"
+  (visibleChange)="showChangeEstado.set($event)"
+>
+  <div class="dialog-form">
+    <div class="form-field">
+      <label>Nuevo estado</label>
+      <p-select
+        [options]="estadoOptions()"
+        [(ngModel)]="nuevoEstado"
+        optionLabel="label"
+        optionValue="value"
+        style="width:100%"
+      />
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <button class="btn-ghost" (click)="showChangeEstado.set(false)">Cancelar</button>
+    <button
+      class="btn-primary"
+      (click)="changeEstado()"
+      [disabled]="!nuevoEstado || changingEstado()"
+    >
+      @if (changingEstado()) {
+        <i class="pi pi-spin pi-spinner"></i>
+      } @else {
+        <i class="pi pi-check"></i>
+      }
+      Confirmar
+    </button>
+  </ng-template>
+</p-dialog>

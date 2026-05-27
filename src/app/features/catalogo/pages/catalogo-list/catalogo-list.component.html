@@ -1,0 +1,244 @@
+<div class="page">
+  <app-page-header title="Catálogo" subtitle="Actividades e items disponibles para cotizaciones" />
+
+  <p-tabs value="items">
+    <p-tablist>
+      <p-tab value="items">Items del catálogo</p-tab>
+      <p-tab value="actividades">Actividades</p-tab>
+    </p-tablist>
+
+    <p-tabpanels>
+      <!-- ITEMS -->
+      <p-tabpanel value="items">
+        <div class="tab-toolbar">
+          <div class="tab-toolbar__filters">
+            <p-iconfield>
+              <p-inputicon styleClass="pi pi-search" />
+              <input
+                pInputText
+                type="text"
+                placeholder="Buscar items..."
+                [(ngModel)]="searchItems"
+              />
+            </p-iconfield>
+            <p-select
+              [options]="actividadOptions()"
+              [(ngModel)]="filterActividadId"
+              optionLabel="label"
+              optionValue="value"
+              (onChange)="loadItems()"
+              placeholder="Filtrar por actividad"
+            />
+          </div>
+          <button class="btn-primary" (click)="showItemDialog.set(true); formItem.reset({ precioBase: 0 })">
+            <i class="pi pi-plus"></i>
+            Nuevo item
+          </button>
+        </div>
+
+        <div class="card table-card">
+          <p-table
+            [value]="filteredItems"
+            [loading]="loadingItems()"
+            [paginator]="filteredItems.length > 20"
+            [rows]="20"
+            dataKey="id"
+          >
+            <ng-template #header>
+              <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Actividad</th>
+                <th>Unidad</th>
+                <th style="text-align:right">Precio base</th>
+                <th>Estado</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-i>
+              <tr>
+                <td><code class="item-code">{{ i.codigo }}</code></td>
+                <td>{{ i.descripcion }}</td>
+                <td><span class="actividad-tag">{{ i.actividadNombre }}</span></td>
+                <td>{{ i.unidad }}</td>
+                <td style="text-align:right">
+                  <strong>{{ i.precioBase | number:'1.2-2' }}</strong>
+                </td>
+                <td>
+                  @if (i.activo) {
+                    <span class="badge badge--aprobada">Activo</span>
+                  } @else {
+                    <span class="badge badge--cancelada">Inactivo</span>
+                  }
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+              <tr><td colspan="6">
+                <app-empty-state
+                  icon="pi pi-th-large"
+                  title="Sin items"
+                  description="Crea el primer item del catálogo para usarlo en cotizaciones."
+                >
+                  <button class="btn-primary" (click)="showItemDialog.set(true)">
+                    <i class="pi pi-plus"></i>
+                    Crear item
+                  </button>
+                </app-empty-state>
+              </td></tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </p-tabpanel>
+
+      <!-- ACTIVIDADES -->
+      <p-tabpanel value="actividades">
+        <div class="tab-toolbar">
+          <div></div>
+          <button class="btn-primary" (click)="showActDialog.set(true); formAct.reset({ orden: actividades().length + 1 })">
+            <i class="pi pi-plus"></i>
+            Nueva actividad
+          </button>
+        </div>
+
+        <div class="card table-card">
+          <p-table
+            [value]="actividades()"
+            [loading]="loadingAct()"
+            dataKey="id"
+          >
+            <ng-template #header>
+              <tr>
+                <th>Orden</th>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Estado</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-a>
+              <tr>
+                <td><span class="orden-badge">{{ a.orden }}</span></td>
+                <td><code class="item-code">{{ a.codigo }}</code></td>
+                <td>{{ a.nombre }}</td>
+                <td>
+                  @if (a.activo) {
+                    <span class="badge badge--aprobada">Activo</span>
+                  } @else {
+                    <span class="badge badge--cancelada">Inactivo</span>
+                  }
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+              <tr><td colspan="4">
+                <app-empty-state
+                  icon="pi pi-list"
+                  title="Sin actividades"
+                  description="Las actividades agrupan los items del catálogo."
+                >
+                  <button class="btn-primary" (click)="showActDialog.set(true)">
+                    <i class="pi pi-plus"></i>
+                    Crear actividad
+                  </button>
+                </app-empty-state>
+              </td></tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
+</div>
+
+<!-- Dialog nueva actividad -->
+<p-dialog
+  header="Nueva Actividad"
+  [(visible)]="showActDialog"
+  [modal]="true"
+  [style]="{ width: '440px' }"
+  (visibleChange)="showActDialog.set($event)"
+>
+  <form [formGroup]="formAct" class="dialog-form">
+    <div class="dialog-form__row">
+      <div class="form-field">
+        <label>Código <span class="required">*</span></label>
+        <input pInputText formControlName="codigo" placeholder="OBR" style="width:100%" />
+        @if (hasErrorAct('codigo')) { <span class="field-error">Requerido</span> }
+      </div>
+      <div class="form-field">
+        <label>Orden <span class="required">*</span></label>
+        <p-inputnumber formControlName="orden" [min]="1" style="width:100%" />
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Nombre <span class="required">*</span></label>
+      <input pInputText formControlName="nombre" placeholder="Obras civiles" style="width:100%" />
+      @if (hasErrorAct('nombre')) { <span class="field-error">Requerido</span> }
+    </div>
+  </form>
+  <ng-template #footer>
+    <button class="btn-ghost" (click)="showActDialog.set(false)">Cancelar</button>
+    <button class="btn-primary" (click)="saveActividad()" [disabled]="savingAct()">
+      @if (savingAct()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
+      Guardar
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog nuevo item -->
+<p-dialog
+  header="Nuevo Item"
+  [(visible)]="showItemDialog"
+  [modal]="true"
+  [style]="{ width: '560px' }"
+  (visibleChange)="showItemDialog.set($event)"
+>
+  <form [formGroup]="formItem" class="dialog-form">
+    <div class="form-field">
+      <label>Actividad <span class="required">*</span></label>
+      <p-select
+        formControlName="actividadId"
+        [options]="actividadOptions().slice(1)"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Selecciona actividad"
+        style="width:100%"
+      />
+      @if (hasErrorItem('actividadId')) { <span class="field-error">Requerido</span> }
+    </div>
+    <div class="dialog-form__row">
+      <div class="form-field">
+        <label>Código <span class="required">*</span></label>
+        <input pInputText formControlName="codigo" placeholder="OBR-001" style="width:100%" />
+        @if (hasErrorItem('codigo')) { <span class="field-error">Requerido</span> }
+      </div>
+      <div class="form-field">
+        <label>Unidad <span class="required">*</span></label>
+        <input pInputText formControlName="unidad" placeholder="m², m³, und..." style="width:100%" />
+        @if (hasErrorItem('unidad')) { <span class="field-error">Requerido</span> }
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Descripción <span class="required">*</span></label>
+      <input pInputText formControlName="descripcion" placeholder="Descripción del item" style="width:100%" />
+      @if (hasErrorItem('descripcion')) { <span class="field-error">Requerido</span> }
+    </div>
+    <div class="form-field">
+      <label>Precio base <span class="required">*</span></label>
+      <p-inputnumber
+        formControlName="precioBase"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+        [min]="0"
+        placeholder="0.00"
+        style="width:100%"
+      />
+    </div>
+  </form>
+  <ng-template #footer>
+    <button class="btn-ghost" (click)="showItemDialog.set(false)">Cancelar</button>
+    <button class="btn-primary" (click)="saveItem()" [disabled]="savingItem()">
+      @if (savingItem()) { <i class="pi pi-spin pi-spinner"></i> } @else { <i class="pi pi-check"></i> }
+      Guardar
+    </button>
+  </ng-template>
+</p-dialog>
